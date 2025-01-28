@@ -1,11 +1,22 @@
 import { User } from "../models/userModel.js";
 import bcrypt from "bcrypt"
 import { generateToken } from "../utils/token.js";
+import { uploadImage } from "../utils/uploadImage.js";
 
 // New user signin 
 export const userSignin = async (req, res, next) => {
   try {
-    const { fname, lname, email, password, mobile, profilePic, dob } = req.body;
+    const { fname, lname, email, password, mobile, dob } = req.body;
+    let profilePic
+
+    if(req.file){
+      const profilePicPath = req.file.path;
+
+      const result = await uploadImage(profilePicPath);
+      profilePic = result.url;
+    }
+    
+
     if (!fname || !email || !password || !mobile) {
       return res.status(400).json({ message: "All filed are required" });
     }
@@ -41,7 +52,7 @@ export const userLogin = async (req, res, next) => {
   try {
         const {email, password } = req.body;
         if (!email || !password) {
-        return res.status(400).json({ message: "All filed are required" });
+        return res.status(400).json({ message: "All fileds are required" });
         }
         const userExist = await User.findOne({ email });
 
@@ -58,12 +69,12 @@ export const userLogin = async (req, res, next) => {
         const token = generateToken(userExist._id);
         res.cookie("token", token);
 
-        const userExistObject = userExist.toObject();
-        delete userExistObject._id;
-        delete userExistObject.password;
+        // const userExistObject = userExist.toObject();
+        // delete userExistObject._id;
+        delete userExist._doc.password;
 
         return res.json({
-        data: userExistObject,
+        data: userExist,
         message: "User login successful",
         });
             
@@ -105,7 +116,7 @@ export const userLogout = async (req, res, next) => {
   }
 };
 
-//Delete User Account
+//Deactivate User Account
 export const deactivateUser = async (req, res, next) => {
   try {
         const userId = req.user.id

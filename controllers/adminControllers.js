@@ -1,11 +1,22 @@
 import { Manager } from "../models/managerModel.js";
 import bcrypt from "bcrypt"
 import { generateToken } from "../utils/token.js";
+import { uploadImage } from "../utils/uploadImage.js";
 
 // Register new admin or manager
 export const adminSignin = async (req, res, next) => {
   try {
-    const { fname, lname, email, password, mobile, role, profilePic, dob } = req.body;
+    const { fname, lname, email, password, mobile, role, dob } = req.body;
+    let profilePic
+
+    if(req.file){
+
+      const profilePicPath = req.file.path;
+      const result = await uploadImage(profilePicPath);
+       profilePic = result.url;
+
+    }
+
     if (!fname || !email || !password || !mobile ) {
       return res.status(400).json({ message: "All filed are required" });
     }
@@ -120,26 +131,7 @@ export const deactivateAdmin = async (req, res, next) => {
   }
 };
 
-//Deactivate Manager Account
-export const deactivateManager = async (req, res, next) => {
-  try {
-        const {managerId} = req.body
 
-        const managerInfo = await Manager.findById(managerId).select("-password");
-        if(!managerInfo || managerInfo.role != "manager"){
-            return res.status(401).json({ message: "Manager not exist" });
-        }
-        managerInfo.isActive = false
-        await managerInfo.save()
-
-        return res.json({data: managerInfo,message: "Account deleted successfully",});
-
-  } catch (error) {
-    return res
-      .status(error.statusCode || 500)
-      .json({ message: error.message || "Internal server error" });
-  }
-};
 
 //Update Admin Password
 export const updateAdminPassword = async(req,res,next) =>{
@@ -175,3 +167,37 @@ export const updateAdminPassword = async(req,res,next) =>{
       .json({ message: error.message || "Internal server error" });
     }
  };
+
+ //Update Admin Profile
+ export const updateAdminProfile = async(req,res,next) =>{
+     try {
+ 
+         const adminId = req.user.id;
+         const { fname, lname, email, mobile, dob } = req.body;
+ 
+         if(!fname && !lname && !email && !mobile && !dob){
+             return res
+               .status(400)
+               .json({ message : "No information provided to update" });
+         }
+ 
+         const updatedAdmin = await Manager.findByIdAndUpdate(
+           adminId,
+           { $set: { fname, lname, email, mobile, dob } },
+           { new: true, runValidators: true }
+         ).select("-password");
+ 
+         if (!updatedAdmin) {
+           return res.status(404).json({ message: "User not found" });
+         }
+ 
+         return res
+           .status(200)
+           .json({ data : updatedAdmin ,message: "Profile updated successfully" });
+         
+     } catch (error) {
+         return res
+           .status(error.statusCode || 500)
+           .json({ message: error.message || "Internal server error" });
+     }
+ }

@@ -2,12 +2,13 @@ import express from "express"
 import { userSignin,userLogin, userProfile, userLogout, updateUserPassword, deactivateUser, updateUserProfile } from "../controllers/userControllers.js"
 import { userAuth } from "../middlewares/userAuth.js";
 import {checkUser} from "../middlewares/checkUser.js"
+import { upload } from "../middlewares/multer.js";
 
 export const router = express.Router()
 
 
 //signin
-router.post("/signin",userSignin)
+router.post("/signin",upload.single('profilePic'),userSignin)
 
 //login
 router.put("/login",checkUser,userLogin);
@@ -28,10 +29,6 @@ router.patch("/update-password",userAuth,updateUserPassword)
 
 //deactivate-account
 router.put("/deactivate-account", userAuth, deactivateUser);
-
-
-
-// check-user
 
 
 export {router as userRouter}

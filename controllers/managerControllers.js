@@ -109,3 +109,58 @@ export const updateManagerPassword = async(req,res,next) =>{
       .json({ message: error.message || "Internal server error" });
     }
  };
+
+  //Update Manager Profile
+ export const updateManagerProfile = async(req,res,next) =>{
+     try {
+ 
+         const managerId = req.user.id;
+         const { fname, lname, email, mobile, dob } = req.body;
+ 
+         if(!fname && !lname && !email && !mobile && !dob){
+             return res
+               .status(400)
+               .json({ message : "No information provided to update" });
+         }
+ 
+         const updatedManager = await Manager.findByIdAndUpdate(
+           managerId,
+           { $set: { fname, lname, email, mobile, dob } },
+           { new: true, runValidators: true }
+         ).select("-password");
+ 
+         if (!updatedManager) {
+           return res.status(404).json({ message: "User not found" });
+         }
+ 
+         return res
+           .status(200)
+           .json({ data : updatedManager ,message: "Profile updated successfully" });
+         
+     } catch (error) {
+         return res
+           .status(error.statusCode || 500)
+           .json({ message: error.message || "Internal server error" });
+     }
+ }
+
+ //Deactivate Manager Account
+export const deactivateManager = async (req, res, next) => {
+  try {
+        const {managerId} = req.body
+
+        const managerInfo = await Manager.findById(managerId).select("-password");
+        if(!managerInfo || managerInfo.role != "manager"){
+            return res.status(401).json({ message: "Manager not exist" });
+        }
+        managerInfo.isActive = false
+        await managerInfo.save()
+
+        return res.json({data: managerInfo,message: "Account deleted successfully",});
+
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};

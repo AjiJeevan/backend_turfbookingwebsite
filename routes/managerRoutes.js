@@ -1,7 +1,9 @@
 import express from "express"
 import { managerAuth } from "../middlewares/managerAuth.js";
-import { managerLogin, managerLogout, managerProfile, updateManagerPassword } from "../controllers/managerControllers.js";
+import { deactivateManager, managerLogin, managerLogout, managerProfile, updateManagerPassword, updateManagerProfile } from "../controllers/managerControllers.js";
 import { checkManager } from "../middlewares/checkManager.js";
+import { adminAuth } from "../middlewares/adminAuth.js";
+import { adminSignin } from "../controllers/adminControllers.js";
 
 const router = express.Router()
 
@@ -16,6 +18,15 @@ router.get("/logout",managerAuth,managerLogout)
 
 //Update Password
 router.patch("/update-password",managerAuth,updateManagerPassword)
+
+//profile-updates
+router.post("/update-profile", managerAuth, updateManagerProfile);
+
+//Register Manager
+router.post("/register-manager",adminAuth,adminSignin)
+
+//Deactivate Manager Account
+router.put("/deactivate-manager", adminAuth, deactivateManager);
 
 
 
