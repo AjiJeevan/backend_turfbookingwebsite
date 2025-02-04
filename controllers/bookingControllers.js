@@ -10,7 +10,7 @@ export const newBooking = async(req,res,next)=>{
 
         if (!turfId || !date || !slot || !slot.startTime || !slot.endTime || !totalPrice) {
           return res.status(400).json({
-            message: "All fileds are required.",
+            message: "All fields are required.",
           });
         }
 
@@ -88,7 +88,7 @@ export const updateBookingStatus = async(req,res,next)=>{
 
         if (!bookingId || !turfId || !status){
           return res.status(400).json({
-            message: "All fileds are required.",
+            message: "All fields are required.",
           });
         }
 
@@ -124,7 +124,7 @@ export const updateBookingRequest = async(req,res,next)=>{
 
         if (!bookingId || !turfId || !requestStatus) {
           return res.status(400).json({
-            message: "All fileds are required.",
+            message: "All fields are required.",
           });
         }
 

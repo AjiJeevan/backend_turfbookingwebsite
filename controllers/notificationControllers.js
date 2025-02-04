@@ -10,7 +10,7 @@ export const newNotification = async(req,res,next)=>{
 
         if (!userId || !bookingId || !title || !message || !type) {
           return res.status(400).json({
-            message: "All fileds are required.",
+            message: "All fields are required.",
           });
         }
 

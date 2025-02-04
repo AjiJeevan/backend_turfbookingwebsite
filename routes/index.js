@@ -1,5 +1,6 @@
 import { adminRouter } from "./adminRoutes.js";
 import { bookingRouter } from "./bookingRoutes.js";
+import { enquiryRouter } from "./enquiryRoutes.js";
 import { managerRouter } from "./managerRoutes.js";
 import { notificationRouter } from "./notificationRoutes.js";
 import { paymentRouter } from "./paymentRoutes.js";
@@ -17,6 +18,7 @@ router.use("/turf",turfRouter)
 router.use("/booking",bookingRouter)
 router.use("/review",reviewRouter)
 router.use("/payment",paymentRouter)
-router.use("/notification",notificationRouter)
+router.use("/notification", notificationRouter)
+router.use("/enquiry",enquiryRouter)
 
 export {router as apiRouter}

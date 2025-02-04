@@ -4,21 +4,28 @@ import { generateToken } from "../utils/token.js";
 import { uploadImage } from "../utils/uploadImage.js";
 
 // New user signin 
-export const userSignin = async (req, res, next) => {
+export const userSignup = async (req, res, next) => {
   try {
     const { fname, lname, email, password, mobile, dob } = req.body;
+    console.log("fname=====", fname)
+    console.log("email=====", email);
+    console.log("password=====", password);
+    console.log("mobile=====", mobile);
     let profilePic
 
     if(req.file){
       const profilePicPath = req.file.path;
 
       const result = await uploadImage(profilePicPath);
-      profilePic = result.url;
+      const profilePic = result.url;
+    }
+    else {
+      profilePic = "https://i.pinimg.com/originals/98/1d/6b/981d6b2e0ccb5e968a0618c8d47671da.jpg"
     }
     
 
     if (!fname || !email || !password || !mobile) {
-      return res.status(400).json({ message: "All filed are required" });
+      return res.status(400).json({ message: "All fields are required" });
     }
     const isUserExist = await User.findOne({ email });
 
@@ -38,7 +45,7 @@ export const userSignin = async (req, res, next) => {
     delete userInfoObject._id
     delete userInfoObject.password
 
-    return res.json({data : userInfoObject, message : "Account created successfully"})
+    return res.json({data : userInfoObject, message : "Account created successfully" , token : token})
 
   } catch (error) {
     return res.status(error.statusCode || 500).json({message : error.message || "Internal server error"})
@@ -52,7 +59,7 @@ export const userLogin = async (req, res, next) => {
   try {
         const {email, password } = req.body;
         if (!email || !password) {
-        return res.status(400).json({ message: "All fileds are required" });
+        return res.status(400).json({ message: "All fields are required" });
         }
         const userExist = await User.findOne({ email });
 
@@ -76,6 +83,7 @@ export const userLogin = async (req, res, next) => {
         return res.json({
         data: userExist,
         message: "User login successful",
+        token : token
         });
             
   } catch (error) {

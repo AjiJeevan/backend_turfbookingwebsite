@@ -1,14 +1,15 @@
 import express from "express"
-import { userSignin,userLogin, userProfile, userLogout, updateUserPassword, deactivateUser, updateUserProfile } from "../controllers/userControllers.js"
+import { userSignup,userLogin, userProfile, userLogout, updateUserPassword, deactivateUser, updateUserProfile } from "../controllers/userControllers.js"
 import { userAuth } from "../middlewares/userAuth.js";
 import {checkUser} from "../middlewares/checkUser.js"
 import { upload } from "../middlewares/multer.js";
+import { authenticateToken } from "../middlewares/authenticateToken.js";
 
 export const router = express.Router()
 
 
-//signin
-router.post("/signin",upload.single('profilePic'),userSignin)
+//signup
+router.post("/signup",upload.single('profilePic'),userSignup)
 
 //login
 router.put("/login",checkUser,userLogin);
@@ -29,6 +30,9 @@ router.patch("/update-password",userAuth,updateUserPassword)
 
 //deactivate-account
 router.put("/deactivate-account", userAuth, deactivateUser);
+
+// Verify Token
+router.get("/verify-token", authenticateToken)
 
 
 export {router as userRouter}

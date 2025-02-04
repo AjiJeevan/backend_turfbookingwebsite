@@ -12,7 +12,7 @@ export const newPayment = async(req,res,next)=>{
         if ((!bookingId && !userId && !amount && !paymentMethod && !transactionId)) {
           console.log(slot.endtTime);
           return res.status(400).json({
-            message: "All fileds are required.",
+            message: "All fields are required.",
           });
         }
 
@@ -68,7 +68,7 @@ export const updatePaymentStatus = async (req, res, next) => {
     if (!paymentId && !userId) {
       console.log(slot.endtTime);
       return res.status(400).json({
-        message: "All fileds are empty.",
+        message: "All fields are empty.",
       });
     }
 

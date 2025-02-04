@@ -47,14 +47,15 @@ export const createTurf = async(req,res,next)=>{
         let image
 
         
-        const available = JSON.parse(availability);
-        console.log(available)
+      // const available = JSON.parse(availability);
+      console.log("checking");
+        // console.log(available)
 
-        const managerObjectId = new mongoose.Schema.Types.ObjectId(managerId);
+        const managerObjectId = new mongoose.Types.ObjectId(managerId);
 
         if (!name || !location || !price || !availability || !managerObjectId) {
           return res.status(400).json({
-            message: "All fileds are required.",
+            message: "All fields are required.",
           });
         }
 
@@ -68,7 +69,7 @@ export const createTurf = async(req,res,next)=>{
         
 
 
-        const turfInfo = new Turf({name,location,image,price,facilities,sportsType,availability : available ,managerId :managerObjectId,});
+        const turfInfo = new Turf({name,location,image,price,facilities,sportsType,availability,managerId :managerObjectId,});
         await turfInfo.save()
 
         return res.json({data : turfInfo , message : "Turf details added to the database"})

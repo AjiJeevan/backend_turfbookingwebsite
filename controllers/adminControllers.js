@@ -18,7 +18,7 @@ export const adminSignin = async (req, res, next) => {
     }
 
     if (!fname || !email || !password || !mobile ) {
-      return res.status(400).json({ message: "All filed are required" });
+      return res.status(400).json({ message: "All fields are required" });
     }
     const isAdminExist = await Manager.findOne({ email });
 
@@ -38,7 +38,7 @@ export const adminSignin = async (req, res, next) => {
     delete adminInfoObject._id
     delete adminInfoObject.password
 
-    return res.json({data : adminInfoObject, message : "Account created successfully"})
+    return res.json({data : adminInfoObject, message : "Account created successfully" , token : token , role : "admin"})
 
   } catch (error) {
     return res.status(error.statusCode || 500).json({message : error.message || "Internal server error"})
@@ -51,7 +51,7 @@ export const adminLogin = async (req, res, next) => {
   try {
         const {email, password } = req.body;
         if (!email || !password) {
-        return res.status(400).json({ message: "All filed are required" });
+        return res.status(400).json({ message: "All fields are required" });
         }
         const adminExist = await Manager.findOne({ email });
 
@@ -75,6 +75,8 @@ export const adminLogin = async (req, res, next) => {
         return res.json({
           data: adminExistObject,
           message: `Admin login successful`,
+          token: token,
+          role: "admin",
         });
             
   } catch (error) {
