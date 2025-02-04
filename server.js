@@ -12,11 +12,14 @@ const app = express()
 const port = 3000
 
 app.use(express.json())
-app.use(cors({
-  origin: "http://localhost:5173",
-  methods: ["GET", "PUT", "POST", "PATCH", "DELETE", "OPTIONS"],
-  credentials : true
-}))
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    methods: ["GET", "PUT", "POST", "PATCH", "DELETE", "OPTIONS"],
+    credentials: true,
+  })
+);
+
 app.use(cookieParser())
 app.use("/api", apiRouter)
 
