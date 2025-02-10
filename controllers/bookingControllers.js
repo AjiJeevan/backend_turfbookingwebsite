@@ -175,3 +175,29 @@ export const getBookingHistory = async (req, res, next) => {
       .json({ message: error.message || "Internal server error" });
   }
 };
+
+// Booking Details of a turfs assigned to a particular manager
+export const getBookingDetails = async (req, res, next) => {
+  try {
+    const turfId = req.params.id
+    if (!turfId) {
+       return res.status(400).json({
+         message: "Please provide Turf Id",
+       });
+    }
+
+    const bookingLists = await Booking.find({ turfId }).populate("turfId").populate("userId")
+    if (!bookingLists) {
+      return res.status(404).json({
+        message: "No Booking Found",
+      });
+    }
+
+    return res.json({ data: bookingLists , message: "Booking Lists fetched" });
+    
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+}

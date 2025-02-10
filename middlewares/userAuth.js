@@ -5,12 +5,12 @@ export const userAuth = (req,res,next) =>{
         const {token} = req.cookies;
         
         if(!token){
-            return res.status(401).json({message: "User Autherization failed",success: false});
+            return res.status(401).json({message: "User Autherization failed , No token available ",success: false});
         }
 
         const tokenVerified = jwt.verify(token, process.env.JWT_KEY);
         if(!tokenVerified){
-            return res.status(401).json({ message: "User Autherization failed", success: false });
+            return res.status(401).json({ message: "User Autherization Failed, Invalid Token", success: false });
         }
 
         req.user = tokenVerified

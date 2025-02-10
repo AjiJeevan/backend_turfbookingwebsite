@@ -3,14 +3,12 @@ import bcrypt from "bcrypt"
 import { generateToken } from "../utils/token.js";
 import { uploadImage } from "../utils/uploadImage.js";
 
+const NODE_ENV = process.env.NODE_ENV;
+
 // New user signin 
 export const userSignup = async (req, res, next) => {
   try {
     const { fname, lname, email, password, mobile, dob } = req.body;
-    console.log("fname=====", fname)
-    console.log("email=====", email);
-    console.log("password=====", password);
-    console.log("mobile=====", mobile);
     let profilePic
 
     if(req.file){
@@ -39,10 +37,15 @@ export const userSignup = async (req, res, next) => {
     await userInfo.save();
 
     const token = generateToken(userInfo._id)
-    res.cookie("token",token)
+    // res.cookie("token", token)
+    res.cookie("token", token, {
+      sameSite: NODE_ENV === "production" ? "None" : "Lax",
+      secure: NODE_ENV === "production",
+      httpOnly: NODE_ENV === "production",
+    });
 
     const userInfoObject = userInfo.toObject()
-    delete userInfoObject._id
+    
     delete userInfoObject.password
 
     return res.json({data : userInfoObject, message : "Account created successfully" , token : token})
@@ -74,7 +77,12 @@ export const userLogin = async (req, res, next) => {
 
 
         const token = generateToken(userExist._id);
-        res.cookie("token", token);
+    // res.cookie("token", token);
+    res.cookie("token", token, {
+      sameSite: NODE_ENV === "production" ? "None" : "Lax",
+      secure: NODE_ENV === "production",
+      httpOnly: NODE_ENV === "production",
+    });
 
         // const userExistObject = userExist.toObject();
         // delete userExistObject._id;
@@ -113,7 +121,11 @@ export const userProfile = async (req, res, next) => {
 //User Logout
 export const userLogout = async (req, res, next) => {
   try {
-        res.clearCookie("token")
+        res.clearCookie("token", {
+          sameSite: NODE_ENV === "production" ? "None" : "Lax",
+          secure: NODE_ENV === "production",
+          httpOnly: NODE_ENV === "production",
+        });
 
         return res.json({message: "User logged out successfully",});
         
@@ -182,7 +194,14 @@ export const updateUserProfile = async(req,res,next) =>{
     try {
 
         const userId = req.user.id;
-        const { fname, lname, email, mobile, dob } = req.body;
+      const { fname, lname, email, mobile, dob } = req.body;
+      let profilePic;
+
+      if (req.file) {
+        const profilePicPath = req.file.path;
+        const result = await uploadImage(profilePicPath);
+        profilePic = result.url;
+      }
 
         if(!fname && !lname && !email && !mobile && !dob){
             return res
@@ -192,7 +211,7 @@ export const updateUserProfile = async(req,res,next) =>{
 
         const updatedUser = await User.findByIdAndUpdate(
           userId,
-          { $set: { fname, lname, email, mobile, dob } },
+          { $set: { fname, lname, email, mobile, dob ,profilePic} },
           { new: true, runValidators: true }
         ).select("-password");
 
@@ -210,3 +229,13 @@ export const updateUserProfile = async(req,res,next) =>{
           .json({ message: error.message || "Internal server error" });
     }
 }
+
+export const checkUser = async (req, res, next) => {
+  try {
+    return res.json({ message: "user autherized" });
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};

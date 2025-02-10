@@ -9,7 +9,8 @@ import { apiRouter } from "./routes/index.js"
 connectDB()
 
 const app = express()
-const port = 3000
+const port = 3001
+
 
 app.use(express.json())
 app.use(
@@ -22,6 +23,10 @@ app.use(
 
 app.use(cookieParser())
 app.use("/api", apiRouter)
+
+app.get("/", (req, res) => {
+  res.send("Turf Booking Site ");
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`)

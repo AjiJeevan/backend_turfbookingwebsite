@@ -1,6 +1,6 @@
 import { User } from "../models/userModel.js";
 
-export const checkUser = async (req, res, next) => {
+export const checkUserValid = async (req, res, next) => {
   try {
     const { email } = req.body;
 
@@ -14,7 +14,7 @@ export const checkUser = async (req, res, next) => {
 
 
     if (!userInfo || !userInfo.isActive){
-      return res.status(404).json({ message: "User Autherization failed", success: false });
+      return res.status(404).json({ message: "User Not Exist", success: false });
     }
 
 

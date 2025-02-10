@@ -28,7 +28,7 @@ router.patch("/update-password",adminAuth,updateAdminPassword)
 router.put("/deactivate-admin",adminAuth,deactivateAdmin)
 
 //profile-updates
-router.post("/update-profile",adminAuth,updateAdminProfile)
+router.post("/update-profile",adminAuth,upload.single('profilePic'),updateAdminProfile)
 
 
 export {router as adminRouter}

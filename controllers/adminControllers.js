@@ -3,6 +3,8 @@ import bcrypt from "bcrypt"
 import { generateToken } from "../utils/token.js";
 import { uploadImage } from "../utils/uploadImage.js";
 
+const NODE_ENV = process.env.NODE_ENV;
+
 // Register new admin or manager
 export const adminSignin = async (req, res, next) => {
   try {
@@ -32,10 +34,14 @@ export const adminSignin = async (req, res, next) => {
     await adminInfo.save();
 
     const token = generateToken(adminInfo._id,adminInfo.role)
-    res.cookie("token",token)
+    // res.cookie("token",token)
+    res.cookie("token", token, {
+      sameSite: NODE_ENV === "production" ? "None" : "Lax",
+      secure: NODE_ENV === "production",
+      httpOnly: NODE_ENV === "production",
+    });
 
     const adminInfoObject = adminInfo.toObject()
-    delete adminInfoObject._id
     delete adminInfoObject.password
 
     return res.json({data : adminInfoObject, message : "Account created successfully" , token : token , role : "admin"})
@@ -66,10 +72,14 @@ export const adminLogin = async (req, res, next) => {
 
 
         const token = generateToken(adminExist._id,adminExist.role);
-        res.cookie("token", token);
+    // res.cookie("token", token);
+    res.cookie("token", token, {
+      sameSite: NODE_ENV === "production" ? "None" : "Lax",
+      secure: NODE_ENV === "production",
+      httpOnly: NODE_ENV === "production",
+    });
 
         const adminExistObject = adminExist.toObject();
-        delete adminExistObject._id;
         delete adminExistObject.password;
 
         return res.json({
@@ -88,7 +98,8 @@ export const adminLogin = async (req, res, next) => {
 //Admin Profile
 export const adminProfile = async (req, res, next) => {
   try {
-        const adminId = req.user.id
+    const adminId = req.user.id
+    // console.log(adminId)
 
         const adminInfo = await Manager.findById(adminId).select("-password");
 
@@ -104,7 +115,11 @@ export const adminProfile = async (req, res, next) => {
 //Admin Logout
 export const adminLogout = async (req, res, next) => {
   try {
-        res.clearCookie("token")
+       res.clearCookie("token", {
+         sameSite: NODE_ENV === "production" ? "None" : "Lax",
+         secure: NODE_ENV === "production",
+         httpOnly: NODE_ENV === "production",
+       });
 
         return res.json({message: "Logged out successfully",});
         
@@ -175,7 +190,14 @@ export const updateAdminPassword = async(req,res,next) =>{
      try {
  
          const adminId = req.user.id;
-         const { fname, lname, email, mobile, dob } = req.body;
+       const { fname, lname, email, mobile, dob } = req.body;
+       let profilePic;
+       
+       if (req.file) {
+         const profilePicPath = req.file.path;
+         const result = await uploadImage(profilePicPath);
+         profilePic = result.url;
+       }
  
          if(!fname && !lname && !email && !mobile && !dob){
              return res
@@ -185,7 +207,7 @@ export const updateAdminPassword = async(req,res,next) =>{
  
          const updatedAdmin = await Manager.findByIdAndUpdate(
            adminId,
-           { $set: { fname, lname, email, mobile, dob } },
+           { $set: { fname, lname, email, mobile, dob, profilePic } },
            { new: true, runValidators: true }
          ).select("-password");
  

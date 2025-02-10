@@ -1,7 +1,9 @@
 import { Manager } from "../models/managerModel.js";
 import bcrypt from "bcrypt"
 import { generateToken } from "../utils/token.js";
+import { Turf } from "../models/turfModel.js";
 
+const NODE_ENV = process.env.NODE_ENV;
 
 // Manager Login
 export const managerLogin = async (req, res, next) => {
@@ -26,10 +28,14 @@ export const managerLogin = async (req, res, next) => {
 
 
         const token = generateToken(managerExist._id, managerExist.role);
-        res.cookie("token", token);
-
+        //res.cookie("token", token);
+        res.cookie("token", token, {
+          sameSite: NODE_ENV === "production" ? "None" : "Lax",
+          secure: NODE_ENV === "production",
+          httpOnly: NODE_ENV === "production",
+        });
+    
         const managerExistObject = managerExist.toObject();
-        delete managerExistObject._id;
         delete managerExistObject.password;
 
         return res.json({
@@ -64,7 +70,11 @@ export const managerProfile = async (req, res, next) => {
 //Manager Logout
 export const managerLogout = async (req, res, next) => {
   try {
-        res.clearCookie("token")
+        res.clearCookie("token", {
+          sameSite: NODE_ENV === "production" ? "None" : "Lax",
+          secure: NODE_ENV === "production",
+          httpOnly: NODE_ENV === "production",
+        });
 
         return res.json({message: "Logged out successfully",});
         
@@ -115,7 +125,15 @@ export const updateManagerPassword = async(req,res,next) =>{
      try {
  
          const managerId = req.user.id;
-         const { fname, lname, email, mobile, dob } = req.body;
+       const { fname, lname, email, mobile, dob } = req.body;
+       
+       let profilePic;
+              
+              if (req.file) {
+                const profilePicPath = req.file.path;
+                const result = await uploadImage(profilePicPath);
+                profilePic = result.url;
+              }
  
          if(!fname && !lname && !email && !mobile && !dob){
              return res
@@ -125,7 +143,7 @@ export const updateManagerPassword = async(req,res,next) =>{
  
          const updatedManager = await Manager.findByIdAndUpdate(
            managerId,
-           { $set: { fname, lname, email, mobile, dob } },
+           { $set: { fname, lname, email, mobile, dob,profilePic } },
            { new: true, runValidators: true }
          ).select("-password");
  
@@ -164,3 +182,38 @@ export const deactivateManager = async (req, res, next) => {
       .json({ message: error.message || "Internal server error" });
   }
 };
+
+
+// Get All Manager Details
+export const getAllManager = async(req,res,next)=>{
+    try {
+        const managerList = await Manager.find({role : "manager"});
+
+        if(!managerList){
+            return res.status(404).json({message : "No details found "})
+        }
+        return res.json({data : managerList , message : "Manager list fetched"})
+    } catch (error) {
+        return res
+          .status(error.statusCode || 500)
+          .json({ message: error.message || "Internal server error" });
+    }
+}
+
+
+// Get all assigned turf of a purticular manager
+export const getAssignedTurf = async (req, res, next) => {
+  try {
+    const managerId = req.user.id;
+    const turfList = await Turf.find({ managerId })
+    if (!turfList) {
+      return res.status(404).json({ message: "No details found " });
+    }
+    return res.json({ data: turfList , message: "Assigned Turf Lists" });
+    
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+}
