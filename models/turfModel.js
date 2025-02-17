@@ -34,28 +34,16 @@ const turfSchema = mongoose.Schema({
   },
   availability: [
     {
-      date: {
-        type: Date,
-        require: true,
+      slots: {
+      type : [String]
       },
-      slots: [
-        {
-          startTime: {
-            type: String,
-            require: true,
-          },
-          endTime: {
-            type: String,
-            require: true,
-          },
-          isAvailable: {
-            type: Boolean,
-            require: true,
-            default: true,
-          },
-        },
-      ],
-    },
+      isAvailable:
+      {
+        type: Boolean,
+        require: true,
+        default: true,
+      },
+    }
   ],
   managerId: {
     type: mongoose.Types.ObjectId,

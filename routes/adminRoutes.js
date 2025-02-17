@@ -1,10 +1,10 @@
 import express from "express"
-import { adminLogin, adminLogout, adminProfile, adminSignin, deactivateAdmin, 
+import { adminLogin, adminLogout, adminProfile, adminSignin, checkAdmin, deactivateAdmin, 
     updateAdminPassword, updateAdminProfile } from "../controllers/adminControllers.js"
 import {deactivateManager} from "../controllers/managerControllers.js"
 import { adminAuth } from "../middlewares/adminAuth.js";
-import { checkAdmin } from "../middlewares/checkAdmin.js";
 import { upload } from "../middlewares/multer.js";
+import { checkAdminValid } from "../middlewares/checkAdminValid.js";
 
 const router = express.Router()
 
@@ -13,7 +13,7 @@ const router = express.Router()
 router.post("/signin",upload.single('profilePic'),adminSignin)
 
 //login
-router.put("/login",checkAdmin ,adminLogin);
+router.put("/login", checkAdminValid, adminLogin);
 
 //profile
 router.get("/profile",adminAuth,adminProfile)
@@ -28,7 +28,10 @@ router.patch("/update-password",adminAuth,updateAdminPassword)
 router.put("/deactivate-admin",adminAuth,deactivateAdmin)
 
 //profile-updates
-router.post("/update-profile",adminAuth,upload.single('profilePic'),updateAdminProfile)
+router.post("/update-profile", adminAuth, upload.single('profilePic'), updateAdminProfile)
+
+// Check User
+router.get("/check-user", adminAuth, checkAdmin);
 
 
 export {router as adminRouter}

@@ -1,5 +1,5 @@
 import express from "express"
-import { getAllEnquiry, newEnquiry } from "../controllers/enquiryControllers.js";
+import { deleteEnquiry, getAllEnquiry, newEnquiry, sendReply } from "../controllers/enquiryControllers.js";
 import { adminAuth } from "../middlewares/adminAuth.js";
 
 const router = express.Router()
@@ -8,6 +8,12 @@ const router = express.Router()
 router.post("/new-enquiry", newEnquiry);
 
 // Get All Enquiry
-router.get("/all-enquiry",adminAuth,getAllEnquiry)
+router.get("/all-enquiry", adminAuth, getAllEnquiry)
+
+// Delete Enquiry
+router.delete("/delete/:id", adminAuth, deleteEnquiry)
+
+// Update Enquiry
+router.put("/update/:id",adminAuth,sendReply)
 
 export { router as enquiryRouter };

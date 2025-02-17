@@ -1,15 +1,16 @@
 import express from "express"
 import { managerAuth } from "../middlewares/managerAuth.js";
-import { deactivateManager, getAllManager, getAssignedTurf, managerLogin, managerLogout, managerProfile, updateManagerPassword, updateManagerProfile } from "../controllers/managerControllers.js";
-import { checkManager } from "../middlewares/checkManager.js";
+import { checkManager, deactivateManager, getAllManager, getAssignedTurf, managerLogin, managerLogout, managerProfile, updateManagerPassword, updateManagerProfile } from "../controllers/managerControllers.js";
+
 import { adminAuth } from "../middlewares/adminAuth.js";
 import { adminSignin } from "../controllers/adminControllers.js";
 import { upload } from "../middlewares/multer.js";
+import { checkManagerValid } from "../middlewares/checkManagerValid.js";
 
 const router = express.Router()
 
 //login
-router.put("/login",checkManager ,managerLogin);
+router.put("/login",checkManagerValid,managerLogin);
 
 //profile
 router.get("/profile",managerAuth,managerProfile)
@@ -33,7 +34,10 @@ router.put("/deactivate-manager", adminAuth, deactivateManager);
 router.get("/all-manager", adminAuth, getAllManager)
 
 // Get Assigned Turf
-router.get("/assigned-turf",managerAuth,getAssignedTurf)
+router.get("/assigned-turf", managerAuth, getAssignedTurf)
+
+// Check User
+router.get("/check-user", managerAuth,checkManager);
 
 
 

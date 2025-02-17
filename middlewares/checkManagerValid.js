@@ -1,6 +1,6 @@
 import { Manager} from "../models/managerModel.js";
 
-export const checkManager = async (req, res, next) => {
+export const checkManagerValid = async (req, res, next) => {
   try {
     const { email } = req.body;
 

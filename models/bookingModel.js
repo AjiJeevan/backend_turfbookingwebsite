@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema({
   turfId: {
@@ -15,9 +15,8 @@ const bookingSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  slot: {
-    startTime: { type: String, required: true },
-    endTime: { type: String, required: true },
+  slots: {
+    type: [String],
   },
   totalPrice: {
     type: Number,
@@ -32,6 +31,11 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     enum: ["pending", "approved", "rejected"],
     default: "pending",
+  },
+  paymentStatus: {
+    type: String,
+    enum: ["not", "paid", "failed"],
+    default: "not",
   },
 });
 

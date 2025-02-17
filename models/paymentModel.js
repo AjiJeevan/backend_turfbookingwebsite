@@ -21,15 +21,13 @@ const paymentSchema = new mongoose.Schema(
       enum: ["Credit Card", "Debit Card", "UPI", "Net Banking", "Wallet"],
       required: true,
     },
-    transactionId: {
+   sessionId: {
       type: String,
-      required: true,
-      unique: true,
     },
     paymentStatus: {
       type: String,
       enum: ["Pending", "Completed", "Failed", "Refunded"],
-      default: "Pending",
+      default: "Completed",
     },
     createdAt: {
       type: Date,

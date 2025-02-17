@@ -9,7 +9,7 @@ const router = express.Router()
 router.post("/create-turf",adminAuth,upload.single('image'),createTurf)
 
 // Update Existing Turf
-router.post("/update-turf", adminAuth, updateTurf);
+router.post("/update-turf", adminAuth,upload.single('image'), updateTurf);
 
 // Get All Turf
 router.get("/all-turf",getAllTurf)
@@ -17,8 +17,8 @@ router.get("/all-turf",getAllTurf)
 // Get Details of a Turf
 router.get("/turf-details/:id",getTurfDetails)
 
-// Delete Turf
-router.put("/delete-turf/:id",adminAuth,deleteTurf)
+// Delete Turf 
+router.delete("/delete-turf/:id",adminAuth,deleteTurf)
 
 
 

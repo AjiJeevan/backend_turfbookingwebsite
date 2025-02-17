@@ -2,6 +2,7 @@ import { Manager } from "../models/managerModel.js";
 import bcrypt from "bcrypt"
 import { generateToken } from "../utils/token.js";
 import { Turf } from "../models/turfModel.js";
+import { uploadImage } from "../utils/uploadImage.js";
 
 const NODE_ENV = process.env.NODE_ENV;
 
@@ -205,7 +206,7 @@ export const getAllManager = async(req,res,next)=>{
 export const getAssignedTurf = async (req, res, next) => {
   try {
     const managerId = req.user.id;
-    const turfList = await Turf.find({ managerId })
+    const turfList = await Turf.find({ managerId, isActive:true })
     if (!turfList) {
       return res.status(404).json({ message: "No details found " });
     }
@@ -217,3 +218,13 @@ export const getAssignedTurf = async (req, res, next) => {
       .json({ message: error.message || "Internal server error" });
   }
 }
+
+export const checkManager= async (req, res, next) => {
+  try {
+    return res.json({ message: "Manager Autherized" });
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};

@@ -8,7 +8,8 @@ export const newBooking = async(req,res,next)=>{
         const {turfId,date,slot,totalPrice} = req.body;
         const userId = req.user.id;
 
-        if (!turfId || !date || !slot || !slot.startTime || !slot.endTime || !totalPrice) {
+      if (!turfId || !date || !slot || slot.length === 0 || !totalPrice) {
+          console.log(slot)
           return res.status(400).json({
             message: "All fields are required.",
           });
@@ -17,26 +18,13 @@ export const newBooking = async(req,res,next)=>{
         const turf = await Turf.findById(turfId)
         if(!turf){
             return res.status(404).json({ message: "Turf not found." });
-        }
-
-        const existingBookings = await Booking.find({
-            turfId,
-            date,
-            'slot.startTime': { $lt: slot.endTime },
-            'slot.endTime': { $gt: slot.startTime }  
-        })
-
-        if (existingBookings.length > 0) {
-          return res
-            .status(409)
-            .json({ message: "The selected slot is not available." });
-        }
+      }
 
         const bookingInfo= new Booking({
           turfId,
           userId,
           date,
-          slot,
+          slots : slot,
           totalPrice
         });
 
@@ -201,3 +189,141 @@ export const getBookingDetails = async (req, res, next) => {
       .json({ message: error.message || "Internal server error" });
   }
 }
+
+// All booking details for Admin
+export const getAllBookingDetails = async (req, res, next) => {
+  try {
+
+    const bookingLists = await Booking.find();
+
+    if (!bookingLists) {
+      return res.status(404).json({ message: "No details found " });
+    }
+
+    return res.json({ data: bookingLists, message: "Booking Lists fetched" });
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
+
+
+// Get All booking details of a turf on a puticular day
+export const getAvailableSlot = async (req, res, next) => {
+  try {
+    const { turfId, date } = req.body;
+
+    if (!turfId && !date) {
+      console.log(turfId);
+      return res.status(404).json({ message: "Provide Turf Id and Date" });
+    }
+
+    const turf = await Turf.findById(turfId);
+    if (!turf) {
+      return res.status(404).json({ message: "Turf not found!" });
+    }
+
+    const bookedSlots = await Booking.find({ turfId, date }).select("slots");
+
+    const bookedSlotList = bookedSlots.flatMap((booking) => booking.slots);
+
+    const availableSlots = turf.availability
+      .filter(
+        (slot) => slot.isAvailable && !bookedSlotList.includes(slot.slots[0])
+      )
+      .map((slot) => slot.slots[0]);
+
+    if (!availableSlots) {
+      return res.status(404).json({ message: "No slot available" });
+    }
+
+    return res.json({
+      data: availableSlots,
+      message: `Booking Lists fetched for ${turfId} on ${date} `,
+    });
+
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
+
+
+// Get All bookings of a Specific user
+export const getUserBookings = async (req, res, next) => {
+  try {
+    const userId = req.user.id
+
+    const upcomingBookings = await Booking.find({
+      userId,
+      status: "confirmed",
+      requestStatus: { $in: ["pending", "approved"] },
+    }).populate("turfId", "name location").sort({date : 1})
+    
+    // console.log("Upcoming booking ===== ", upcomingBookings)
+
+    const pastBookings = await Booking.find({
+      userId,
+      status: { $in: ["cancelled", "completed"] },
+    }).populate("turfId", "name location");
+
+    // console.log("Past Booking === ", pastBookings)
+    
+    return res.json({ data: { upcoming: upcomingBookings, history :  pastBookings } , message : "User Booking Details Fetched ....."});
+    
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+}
+
+
+// Get All Booking under a manager
+export const getManagerBookings = async (req, res, next) => {
+  try {
+    const managerId = req.user.id
+
+    const turfs = await Turf.find({ managerId }).select("_id");
+    
+    if (!turfs) {
+      return res.status(404).json({ message: "No Turf under this manager" });
+    }
+
+    const turfIds = turfs.map((turf) => turf._id);
+    const bookings = await Booking.find({ turfId: { $in: turfIds } }).populate("userId turfId");
+    // console.log("Turfs === ", bookings);
+
+    if (!bookings) {
+      return res.status(404).json({ message: "No booking under this manager" });
+    }
+
+    return res.json({
+      data: bookings,
+      message: "Booking Details For Manager Fetched .....",
+    });
+
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+}
+
+export const getAllBookingAdmin = async (req, res, next) => {
+  try {
+    const bookingLists = await Booking.find().populate("userId turfId");;
+
+    if (!bookingLists) {
+      return res.status(404).json({ message: "No details found " });
+    }
+
+    return res.json({ data: bookingLists, message: "Booking Lists fetched" });
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};

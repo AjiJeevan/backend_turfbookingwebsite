@@ -1,15 +1,17 @@
 import { Booking } from "../models/bookingModel.js";
 import { Payment } from "../models/paymentModel.js";
+import Stripe from "stripe";
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Create New Payment
 export const newPayment = async(req,res,next)=>{
     try {
 
-        const { bookingId, amount, paymentMethod, transactionId } = req.body;
+        const { bookingId, amount, paymentMethod, sessionId } = req.body;
         const userId = req.user.id;
 
-        if ((!bookingId && !userId && !amount && !paymentMethod && !transactionId)) {
+        if ((!bookingId && !userId && !amount && !paymentMethod && !sessionId)) {
           console.log(slot.endtTime);
           return res.status(400).json({
             message: "All fields are required.",
@@ -26,7 +28,7 @@ export const newPayment = async(req,res,next)=>{
           userId,
           amount,
           paymentMethod,
-          transactionId,
+          sessionId,
         });
         await newPayment.save()
         return res.json({data : newPayment,"message": "New Payment created"})
@@ -105,4 +107,66 @@ export const getAllPayments = async(req,res,next)=>{
           .status(error.statusCode || 500)
           .json({ message: error.message || "Internal server error" });
     }
+}
+
+
+// Create Checkout Session
+export const createCheoutSession = async (req, res, next) => {
+  try {
+    
+    const { bookingId } = req.body
+    console.log("BookingId", bookingId)
+
+    const userId = req.user.id
+
+    const booking = await Booking.findById(bookingId).populate("turfId");
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      success_url: `${process.env.FRONTEND_URL}/user/payment-success`,
+      cancel_url: `${process.env.FRONTEND_URL}/user/payment-error`,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: booking.turfId.name,
+              description: `Booking for ${booking.slots.join(", ")} on ${new Date(booking.date).toDateString()}`,
+            },
+            unit_amount: booking.totalPrice * 100,
+          },
+          quantity: 1,
+        },
+      ],
+    });
+
+    // Saving Payment details
+    console.log("checking.....")
+
+    
+
+    booking.paymentStatus = "paid";
+    await booking.save();
+
+    const newPayment = new Payment({
+      bookingId,
+      turfId : booking.turfId,
+      userId,
+      amount : booking.totalPrice,
+      paymentMethod: "Credit Card",
+      sessionId : session?.id,
+    });
+    await newPayment.save()
+
+    res.status(200).json({data: newPayment, message : "Payment Successfull", sessionId: session.id });
+
+  } catch (error) {
+    return res
+          .status(error.statusCode || 500)
+          .json({ message: error.message || "Error creating payment session" });
+  }
 }

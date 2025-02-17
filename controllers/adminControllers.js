@@ -33,18 +33,21 @@ export const adminSignin = async (req, res, next) => {
     const adminInfo = new Manager({fname,lname,email,password: hashedPassword,mobile,role,profilePic,dob});
     await adminInfo.save();
 
-    const token = generateToken(adminInfo._id,adminInfo.role)
-    // res.cookie("token",token)
-    res.cookie("token", token, {
-      sameSite: NODE_ENV === "production" ? "None" : "Lax",
-      secure: NODE_ENV === "production",
-      httpOnly: NODE_ENV === "production",
-    });
-
+    
+    if (role === "admin") {
+      const token = generateToken(adminInfo._id, adminInfo.role);
+      // res.cookie("token",token)
+      res.cookie("token", token, {
+        sameSite: NODE_ENV === "production" ? "None" : "Lax",
+        secure: NODE_ENV === "production",
+        httpOnly: NODE_ENV === "production",
+      });
+    }
+      
     const adminInfoObject = adminInfo.toObject()
     delete adminInfoObject.password
 
-    return res.json({data : adminInfoObject, message : "Account created successfully" , token : token , role : "admin"})
+    return res.json({data : adminInfoObject, message : "Account created successfully"})
 
   } catch (error) {
     return res.status(error.statusCode || 500).json({message : error.message || "Internal server error"})
@@ -224,4 +227,14 @@ export const updateAdminPassword = async(req,res,next) =>{
            .status(error.statusCode || 500)
            .json({ message: error.message || "Internal server error" });
      }
- }
+}
+ 
+export const checkAdmin = async (req, res, next) => {
+  try {
+    return res.json({ message: "Admin Autherized" });
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+};
