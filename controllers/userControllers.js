@@ -121,10 +121,11 @@ export const userProfile = async (req, res, next) => {
 //User Logout
 export const userLogout = async (req, res, next) => {
   try {
-        res.clearCookie("token", {
+    res.clearCookie("token", {
+          path:"/",
           sameSite: NODE_ENV === "production" ? "None" : "Lax",
-          secure: NODE_ENV === "production",
-          httpOnly: NODE_ENV === "production",
+          secure: true, // NODE_ENV === "production",
+          httpOnly: true // NODE_ENV === "production",
         });
 
         return res.json({message: "User logged out successfully",});
