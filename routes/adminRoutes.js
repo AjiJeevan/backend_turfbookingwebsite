@@ -25,7 +25,7 @@ router.get("/logout",adminAuth,adminLogout)
 router.patch("/update-password",adminAuth,updateAdminPassword)
 
 //Deactivate Admin Account
-router.put("/deactivate-admin",adminAuth,deactivateAdmin)
+router.put("/deactivate-admin/:id",adminAuth,deactivateAdmin)
 
 //profile-updates
 router.post("/update-profile", adminAuth, upload.single('profilePic'), updateAdminProfile)

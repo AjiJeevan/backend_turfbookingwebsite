@@ -1,6 +1,6 @@
 import express from "express"
 import { managerAuth } from "../middlewares/managerAuth.js";
-import { checkManager, deactivateManager, getAllManager, getAssignedTurf, managerLogin, managerLogout, managerProfile, updateManagerPassword, updateManagerProfile } from "../controllers/managerControllers.js";
+import { checkManager, deactivateManager, getAllManager, getAssignedTurf, getManagerDetails, managerLogin, managerLogout, managerProfile, updateManager, updateManagerPassword, updateManagerProfile } from "../controllers/managerControllers.js";
 
 import { adminAuth } from "../middlewares/adminAuth.js";
 import { adminSignin } from "../controllers/adminControllers.js";
@@ -28,13 +28,19 @@ router.post("/update-profile", managerAuth, upload.single('profilePic'), updateM
 router.post("/register-manager",adminAuth,adminSignin)
 
 //Deactivate Manager Account
-router.put("/deactivate-manager", adminAuth, deactivateManager);
+router.delete("/deactivate-manager/:id", adminAuth, deactivateManager);
 
 // Get All Manager Details
 router.get("/all-manager", adminAuth, getAllManager)
 
 // Get Assigned Turf
 router.get("/assigned-turf", managerAuth, getAssignedTurf)
+
+// Get Details of a manager for Admin
+router.get("/manager-details/:id", adminAuth, getManagerDetails)
+
+// Update a manager details by Admin
+router.put("/update-manager/:id",adminAuth,updateManager)
 
 // Check User
 router.get("/check-user", managerAuth,checkManager);

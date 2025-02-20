@@ -1,5 +1,7 @@
 import { Booking } from "../models/bookingModel.js";
 import { Turf } from "../models/turfModel.js";
+import cron from "node-cron"
+import moment from "moment/moment.js"
 
 //New Booking
 export const newBooking = async(req,res,next)=>{
@@ -74,17 +76,17 @@ export const updateBookingStatus = async(req,res,next)=>{
         const {bookingId,turfId,status} = req.body;
         const userId = req.user.id;
 
-        if (!bookingId || !turfId || !status){
+        if (!bookingId || !status){
           return res.status(400).json({
             message: "All fields are required.",
           });
         }
 
-        const turf = await Turf.findById(turfId)
+        // const turf = await Turf.findById(turfId)
 
-        if(!turf){
-            return res.status(404).json({ message: "Turf not found." });
-        }
+        // if(!turf){
+        //     return res.status(404).json({ message: "Turf not found." });
+        // }
 
         const updatedBooking = await Booking.findById(bookingId)
         if (!updatedBooking) {
@@ -255,12 +257,12 @@ export const getAvailableSlot = async (req, res, next) => {
 export const getUserBookings = async (req, res, next) => {
   try {
     const userId = req.user.id
-
+    // console.log("checking ")
     const upcomingBookings = await Booking.find({
       userId,
       status: "confirmed",
       requestStatus: { $in: ["pending", "approved"] },
-    }).populate("turfId", "name location").sort({date : 1})
+    }).populate("turfId", "name location")
     
     // console.log("Upcoming booking ===== ", upcomingBookings)
 
@@ -312,6 +314,8 @@ export const getManagerBookings = async (req, res, next) => {
   }
 }
 
+
+// Get All Booking for Admin
 export const getAllBookingAdmin = async (req, res, next) => {
   try {
     const bookingLists = await Booking.find().populate("userId turfId");;
@@ -327,3 +331,37 @@ export const getAllBookingAdmin = async (req, res, next) => {
       .json({ message: error.message || "Internal server error" });
   }
 };
+
+
+// Update ExpiredBooking
+export const updateCompletedBooking = async (req, res, next) => {
+  try {
+      const currentTime = moment();
+
+      const expiredBookings = await Booking.find({
+          requestStatus: "approved" || "pending",
+          status: "confirmed",
+          date: { $lt: currentTime.toDate() },
+      });
+
+      if (expiredBookings.length === 0) {
+          return res.json({ message: "No expired bookings found" });
+          
+      }
+
+      for (let booking of expiredBookings) {
+          const newStatus = booking.paymentStatus === "paid" ? "completed" : "cancelled";
+          
+          await Booking.updateOne(
+              { _id: booking._id },
+              { $set: { status: newStatus } }
+          );
+
+          console.log(`Booking ID: ${booking._id} updated to ${newStatus}`);
+      }
+      return res.json({ data: expiredBookings , message: "Updated Expired Booking" });
+
+  } catch (error) {
+      return res.status(401).json({message : error.message || "Error in updatind completed booking", success : false})
+  }
+}

@@ -98,15 +98,16 @@ export const updateTurf = async(req,res,next)=>{
   try {
 
    
-        let {_id,name,location, price,facilities,sportsType,managerId} = req.body;
+        let {_id,name,location, price,facilities,availability,sportsType,managerId} = req.body;
     let image
     
 
-        // const available = JSON.parse(availability)
+        const available = JSON.parse(availability)
         const locationInfo = JSON.parse(location)
-        managerId = new mongoose.Types.ObjectId(managerId);
+        const managerObjectId = new mongoose.Types.ObjectId(managerId);
+        // console.log("cheking ...")
         
-        console.log("Checking.......",managerId)
+        // console.log("Checking.......",managerId)
 
       if (!name || !location || !price  || !managerId) {
           console.log(name, location, price, available);
@@ -123,12 +124,12 @@ export const updateTurf = async(req,res,next)=>{
           image = result.url;
     }
     
-    console.log(_id)
+    console.log(managerObjectId)
      if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ message: 'Invalid turf ID' });
     }
     
-    if (!mongoose.Types.ObjectId.isValid(managerId)) {
+    if (!mongoose.Types.ObjectId.isValid(managerObjectId)) {
       return res.status(400).json({ message: 'Invalid manager Id' });
      }
 
@@ -143,9 +144,9 @@ export const updateTurf = async(req,res,next)=>{
     turf.price = price || turf.price;
     turf.facilities = facilities.split(",") || turf.facilities;
     turf.sportsType = sportsType.split(",") || turf.sportsType;
-    // turf.availability = available || turf.availability;
-    turf.managerId = managerId || turf.managerId
-    // turf.isActive = isActive !== undefined ? isActive : turf.isActive;
+    turf.availability = available || turf.availability;
+    turf.managerId = managerObjectId || turf.managerId
+    turf.isActive = true
     
     await turf.save();
     res.status(200).json({data:turf, message: 'Turf updated successfully'});
@@ -184,3 +185,49 @@ export const deleteTurf = async (req, res, next) => {
   }
 };
 
+// get list of turf assigned to a manager for admin
+export const getTurfAssigned = async (req, res, next) => {
+  try {
+        const managerId = req.params.id;
+    
+        const assignedTurf = await Turf.find({ managerId: managerId }).select("_id name")
+        if (!assignedTurf) {
+            return res.json({ data: assignedTurf , message: "Manager Details fetched but no turf assigned to the manager" });
+        }
+    
+        return res.json({ data: assignedTurf  , message: "Assigned Turf Lists" });
+    
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+}
+
+
+//Reassign manager with other Manager
+export const reassignManager = async (req, res, next) => {
+  try {
+    const { oldManager, newManager } = req.body
+
+    if (!oldManager || !newManager) {
+      return res.status(404).json({ message: "Both manager IDs are required" });
+    }
+
+    const updatedTurf = await Turf.updateMany(
+      { managerId: oldManager },
+      { $set: { managerId: newManager } }
+    );
+
+    if (!updateTurf) {
+      return res.status(404).json({ message: "Error in reassigning" });
+    }
+
+    res.status(200).json({ data: updateTurf, message: "Turf manager updated successfully" });
+    
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+}

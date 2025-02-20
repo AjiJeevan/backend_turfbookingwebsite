@@ -1,6 +1,6 @@
 import express from "express"
 import { userAuth } from "../middlewares/userAuth.js";
-import { getAllBookingAdmin, getAllBookings, getAvailableSlot, getBookingDetails, getBookingHistory, getManagerBookings, getUserBookings, newBooking, updateBookingRequest, updateBookingStatus } from "../controllers/bookingControllers.js";
+import { getAllBookingAdmin, getAllBookings, getAvailableSlot, getBookingDetails, getBookingHistory, getManagerBookings, getUserBookings, newBooking, updateBookingRequest, updateBookingStatus, updateCompletedBooking } from "../controllers/bookingControllers.js";
 import { managerAuth } from "../middlewares/managerAuth.js";
 import { adminAuth } from "../middlewares/adminAuth.js";
 
@@ -34,7 +34,10 @@ router.post("/available-slot", getAvailableSlot);
 router.get("/user-booking", userAuth, getUserBookings);
 
 // Get All Booking under a manager
-router.get("/all-boooking-manager",managerAuth,getManagerBookings)
+router.get("/all-boooking-manager", managerAuth, getManagerBookings)
+
+// Update complete/expired booking
+router.put("/completed-booking", updateCompletedBooking)
 
 
 

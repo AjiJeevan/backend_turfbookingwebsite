@@ -166,16 +166,17 @@ export const updateManagerPassword = async(req,res,next) =>{
  //Deactivate Manager Account
 export const deactivateManager = async (req, res, next) => {
   try {
-        const {managerId} = req.body
+        const managerId = req.params.id
 
-        const managerInfo = await Manager.findById(managerId).select("-password");
-        if(!managerInfo || managerInfo.role != "manager"){
-            return res.status(401).json({ message: "Manager not exist" });
-        }
-        managerInfo.isActive = false
-        await managerInfo.save()
+      const manager = await Manager.findByIdAndDelete(managerId)
+    
+        // if(!managerInfo || managerInfo.role != "manager"){
+        //     return res.status(401).json({ message: "Manager not exist" });
+        // }
+        // managerInfo.isActive = false
+        // await managerInfo.save()
 
-        return res.json({data: managerInfo,message: "Account deleted successfully",});
+        return res.json({data: manager ,message: "Account deleted successfully",});
 
   } catch (error) {
     return res
@@ -188,7 +189,7 @@ export const deactivateManager = async (req, res, next) => {
 // Get All Manager Details
 export const getAllManager = async(req,res,next)=>{
     try {
-        const managerList = await Manager.find({role : "manager"});
+        const managerList = await Manager.find({role : "manager" , isActive : true});
 
         if(!managerList){
             return res.status(404).json({message : "No details found "})
@@ -228,3 +229,63 @@ export const checkManager= async (req, res, next) => {
       .json({ message: error.message || "Internal server error" });
   }
 };
+
+// Get Details of a manager for Admin
+export const getManagerDetails = async (req, res, next) => {
+  try {
+    const managerId = req.params.id;
+    const manager = await Manager.findById(managerId).select("-password");
+    
+    if (!manager) {
+      return res.status(404).json({ message: "Manager not found" });
+    }
+
+    const assignedTurf = await Turf.find({ managerId: managerId }).select("_id name")
+    if (!assignedTurf) {
+        return res.json({ data: manager , message: "Manager Details fetched but no turf assigned to the manager" });
+    }
+
+    return res.json({ data: { manager, assignedTurf } , message: "Assigned Turf Lists" });
+
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ message: error.message || "Internal server error" });
+  }
+}
+
+// Update a manager details by Admin
+export const updateManager = async (req,res,next) => {
+  try {
+
+    const managerId = req.params.id;
+    const { fname, lname, email, mobile, dob } = req.body;
+
+    if(!fname && !lname && !email && !mobile && !dob){
+      return res
+        .status(400)
+        .json({ message : "No information provided to update" });
+  }
+
+  const updatedManager = await Manager.findByIdAndUpdate(
+    managerId,
+    { $set: { fname, lname, email, mobile, dob } },
+    { new: true, runValidators: true }
+  ).select("-password");
+
+  if (!updatedManager) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  return res
+    .status(200)
+    .json({ data : updatedManager ,message: "Manager details updated successfully" });
+    
+  } catch (error) {
+    return res
+    .status(error.statusCode || 500)
+    .json({ message: error.message || "Internal server error" });
+  }
+}
+
+
