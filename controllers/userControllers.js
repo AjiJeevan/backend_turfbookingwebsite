@@ -83,7 +83,6 @@ export const userLogin = async (req, res, next) => {
       secure: NODE_ENV === "production",
       httpOnly: NODE_ENV === "production",
       path: "/", 
-      expires: new Date(0),
     });
 
         // const userExistObject = userExist.toObject();
