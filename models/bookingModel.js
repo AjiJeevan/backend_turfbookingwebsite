@@ -37,6 +37,8 @@ const bookingSchema = new mongoose.Schema({
     enum: ["not", "paid", "failed"],
     default: "not",
   },
-});
+},
+{ timestamps: true }
+);
 
 export const Booking = mongoose.model("Booking", bookingSchema);

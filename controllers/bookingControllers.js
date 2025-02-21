@@ -262,7 +262,7 @@ export const getUserBookings = async (req, res, next) => {
       userId,
       status: "confirmed",
       requestStatus: { $in: ["pending", "approved"] },
-    }).populate("turfId", "name location")
+    }).populate("turfId", "name location").sort({ createdAt: -1 })
     
     // console.log("Upcoming booking ===== ", upcomingBookings)
 
@@ -288,7 +288,7 @@ export const getManagerBookings = async (req, res, next) => {
   try {
     const managerId = req.user.id
 
-    const turfs = await Turf.find({ managerId }).select("_id");
+    const turfs = await Turf.find({ managerId }).select("_id").sort({ createdAt: -1 });
     
     if (!turfs) {
       return res.status(404).json({ message: "No Turf under this manager" });
@@ -318,7 +318,12 @@ export const getManagerBookings = async (req, res, next) => {
 // Get All Booking for Admin
 export const getAllBookingAdmin = async (req, res, next) => {
   try {
-    const bookingLists = await Booking.find().populate("userId turfId");;
+    // const result = await Booking.updateMany(
+    //   { createdAt: { $exists: false } }, // Find records without createdAt
+    //   { $set: { createdAt: new Date() } } // Set createdAt to current timestamp
+    // );
+
+    const bookingLists = await Booking.find().populate("userId turfId").sort({ createdAt: -1 });
 
     if (!bookingLists) {
       return res.status(404).json({ message: "No details found " });

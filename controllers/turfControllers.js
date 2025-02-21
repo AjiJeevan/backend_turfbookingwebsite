@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 //Get All Turf List
 export const getAllTurf = async(req,res,next)=>{
     try {
-        const turfList = await Turf.find({isActive : true});
+        const turfList = await Turf.find({isActive : true}).sort({ createdAt: -1 });
 
         if(!turfList){
             return res.status(404).json({message : "No details found "})

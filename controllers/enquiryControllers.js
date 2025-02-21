@@ -25,7 +25,7 @@ export const newEnquiry = async (req, res, next) => {
 // Get All Enquiry
 export const getAllEnquiry = async (req,res,next) => {
   try {
-    const enquiryList = await Enquiry.find().sort({date : 1});
+    const enquiryList = await Enquiry.find().sort({ createdAt: -1 });;
     
             if(!enquiryList){
                 return res.status(404).json({message : "No enquiries found "})

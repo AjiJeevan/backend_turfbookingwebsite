@@ -45,6 +45,9 @@ const turfSchema = mongoose.Schema({
       },
     }
   ],
+  rating: {
+    type : Number,
+  },
   managerId: {
     type: mongoose.Types.ObjectId,
     ref: "Manager",
@@ -54,6 +57,8 @@ const turfSchema = mongoose.Schema({
     type: Boolean,
     default: true,
   },
-});
+},
+{ timestamps: true }
+);
 
 export const Turf = mongoose.model("Turf", turfSchema);

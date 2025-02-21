@@ -189,7 +189,7 @@ export const deactivateManager = async (req, res, next) => {
 // Get All Manager Details
 export const getAllManager = async(req,res,next)=>{
     try {
-        const managerList = await Manager.find({role : "manager" , isActive : true});
+        const managerList = await Manager.find({role : "manager" , isActive : true}).sort({ createdAt: -1 });
 
         if(!managerList){
             return res.status(404).json({message : "No details found "})

@@ -96,7 +96,7 @@ export const updatePaymentStatus = async (req, res, next) => {
 // Get All Payments
 export const getAllPayments = async(req,res,next)=>{
     try {
-        const paymentsLists = await Payment.find();
+        const paymentsLists = await Payment.find().populate("userId").sort({ createdAt: -1 })
 
         if (!paymentsLists) {
           return res.status(404).json({ message: "No record found " });
@@ -109,13 +109,42 @@ export const getAllPayments = async(req,res,next)=>{
     }
 }
 
+// Get All Payments of a User
+export const getAllUserPayments = async (req, res, next) => {
+  try {
+    const userId = req.user.id
+    const payments = await Payment.find({ userId })
+    .populate({
+      path: "bookingId",
+      select :"turfId",
+      populate: {
+        path: "turfId", 
+        select: "name"
+      }
+    })
+      .sort({ createdAt: -1 });
+    
+      if (!payments) {
+        return res.status(404).json({ message: "No Paymnet Details Found " });
+    }
+
+      return res.json({ data: payments, message: "Payment list fetched for the user" });
+    
+  } catch (error) {
+    return res
+          .status(error.statusCode || 500)
+          .json({ message: error.message || "Internal server error" });
+  }
+}
+
+
 
 // Create Checkout Session
 export const createCheoutSession = async (req, res, next) => {
   try {
     
     const { bookingId } = req.body
-    console.log("BookingId", bookingId)
+    // console.log("BookingId", bookingId)
 
     const userId = req.user.id
 
@@ -145,7 +174,7 @@ export const createCheoutSession = async (req, res, next) => {
     });
 
     // Saving Payment details
-    console.log("checking.....")
+    // console.log("checking.....")
 
     
 

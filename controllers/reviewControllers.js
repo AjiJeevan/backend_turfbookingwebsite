@@ -22,7 +22,17 @@ export const createReview = async(req,res,next)=>{
 
         const newReview = new Review({turfId,userId,rating,comment})
         await newReview.save()
-        return res.json({data : newReview,"message": "Review added successfully."})
+      
+        const reviews = await Review.find({ turfId });
+
+      const averageRating = reviews.length > 0 ?
+        reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+        : 0;
+
+      turf.rating = averageRating;
+      await turf.save()
+
+      return res.json({data : newReview,"message": "Review added successfully."})
 
     } catch (error) {
         return res
@@ -61,6 +71,15 @@ export const updateReview = async (req, res, next) => {
       },
       { new: true, runValidators: true }
     );
+
+    const reviews = await Review.find({ turfId });
+    const averageRating = reviews.length > 0 ?
+        reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+        : 0;
+
+      turf.rating = averageRating;
+    await turf.save()
+    
     return res.json({
       data: updatedReview,
       message: "Review updated successfully.",
@@ -75,7 +94,7 @@ export const updateReview = async (req, res, next) => {
 // delete review
 export const deleteReview = async (req, res, next) => {
   try {
-    const reviewId= req.params.id;
+    const {reviewId, turfId} = req.body;
     const userId = req.user.id;
 
     if (!reviewId) {
@@ -85,9 +104,23 @@ export const deleteReview = async (req, res, next) => {
       });
     }
 
-    const deletedReview = await Review.findById(reviewId)
-    deletedReview.isActive = false
-    await deletedReview.save();
+    const turf = await Turf.findById(turfId);
+    if (!turf) {
+      return res.status(404).json({ message: "Turf not found." });
+    }
+
+    const deletedReview = await Review.findByIdAndDelete(reviewId)
+    if (!deleteReview) {
+        return res.status(404).json({ message: "Error in deleting review." });
+    }
+
+    const reviews = await Review.find({ turfId });
+    const averageRating = reviews.length > 0 ?
+        reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+        : 0;
+
+    turf.rating = averageRating;
+    await turf.save()
 
     return res.json({
       data: deletedReview,
@@ -102,24 +135,24 @@ export const deleteReview = async (req, res, next) => {
 };
 
 
-// get reviews of a turf
+// get reviews of a turf for user
 export const getTurfReview = async (req, res, next) => {
   try {
     const turfId = req.params.id
+    const userId = req.user.id
 
     if (!turfId) {
-      console.log(slot.endtTime);
       return res.status(400).json({
         message: "Please provide Turf Id.",
       });
     }
 
-    const reviewLists = await Review.find({turfId, isActive : true});
-    if (!reviewLists) {
-      return res.status(404).json({ message: "No reviews found" });
-    }
+    const review = await Review.findOne({turfId,userId ,isActive : true});
+    // if (!review) {
+    //   return res.status(404).json({ message: "No reviews found" });
+    // }
 
-    return res.json({ data: reviewLists, message: "Reviews of Turf fetched successfully" });
+    return res.json({ data: review, message: "Reviews of Turf fetched successfully" });
 
   } catch (error) {
     return res
@@ -127,6 +160,34 @@ export const getTurfReview = async (req, res, next) => {
       .json({ message: error.message || "Internal server error" });
   }
 };
+
+// Avarage rating of a turf
+export const getTurfRating = async (req, res,next) => {
+  try {
+    const turfId = req.params.id;
+
+    const reviews = await Review.find({ turfId });
+
+    const averageRating =
+      reviews.length > 0
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) /
+          reviews.length
+        : 0;
+
+    return res.json({
+      data: {
+        reviews,
+        averageRating: averageRating.toFixed(1),
+        reviewCount: reviews.length,
+      }, message: "Rating fetched"
+    });
+    
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 
 
 

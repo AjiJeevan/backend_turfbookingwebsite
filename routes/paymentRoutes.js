@@ -1,7 +1,8 @@
 import express from "express"
 import { userAuth } from "../middlewares/userAuth.js";
-import { createCheoutSession, getAllPayments, getPaymentDetails, newPayment, updatePaymentStatus } from "../controllers/paymentController.js";
+import { createCheoutSession, getAllPayments, getAllUserPayments, getPaymentDetails, newPayment, updatePaymentStatus } from "../controllers/paymentController.js";
 import { managerAuth } from "../middlewares/managerAuth.js";
+import { adminAuth } from "../middlewares/adminAuth.js";
 
 const router = express.Router()
 
@@ -15,7 +16,10 @@ router.get("/payment-details/:id",getPaymentDetails)
 router.put("/update-payment-status",managerAuth,updatePaymentStatus)
 
 // Get All Payments
-router.get("/all-payments", managerAuth, getAllPayments)
+router.get("/all-payments", adminAuth, getAllPayments)
+
+// Get All Payments of a User
+router.get("/all-user-payments", userAuth, getAllUserPayments)
 
 //Create Check Out Session
 router.post("/create-checkout-session", userAuth,createCheoutSession)
