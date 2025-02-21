@@ -82,7 +82,6 @@ export const userLogin = async (req, res, next) => {
       sameSite: NODE_ENV === "production" ? "None" : "Lax",
       secure: NODE_ENV === "production",
       httpOnly: NODE_ENV === "production",
-      path: "/", 
     });
 
         // const userExistObject = userExist.toObject();
@@ -125,8 +124,7 @@ export const userLogout = async (req, res, next) => {
     res.clearCookie("token", {
           sameSite: NODE_ENV === "production" ? "None" : "Lax",
           secure: NODE_ENV === "production",
-      httpOnly: NODE_ENV === "production",
-      path: "/", 
+          httpOnly: NODE_ENV === "production",
         });
 
         return res.json({message: "User logged out successfully",});
