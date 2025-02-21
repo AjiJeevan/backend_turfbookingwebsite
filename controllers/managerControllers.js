@@ -42,6 +42,8 @@ export const managerLogin = async (req, res, next) => {
         return res.json({
           data: managerExistObject,
           message: `Manager login successful`,
+          token: token,
+          role: "manager",
         });
             
   } catch (error) {
